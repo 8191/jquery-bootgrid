@@ -16,26 +16,6 @@ Everything you need to start quickly is:
 ```html
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Demo</title>
-        <meta charset="utf-8">
-        <!-- Styles -->
-        <link href="bootstrap.css" rel="stylesheet">
-        <link href="jquery.bootgrid.css" rel="stylesheet">
-    </head>
-    <body>
-        <table id="grid" data-toggle="bootgrid" data-ajax="true" data-url="/api/data/basic" class="table table-condensed table-hover table-striped">
-            <thead>
-                <tr>
-                    <th data-column-id="id">ID</th>
-                    <th data-column-id="name">Sender</th>
-                </tr>
-            </thead>
-        </table>
-        <!-- Scripts -->
-        <script src="jquery.js"></script> 
-        <script src="jquery.bootgrid.js"></script>
-    </body>
 </html>
 ```
 

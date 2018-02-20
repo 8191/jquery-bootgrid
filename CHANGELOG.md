@@ -1,17 +1,27 @@
 # Changelog
 
-## 1.3.3
-### Enhancements & Features
-- Update dependencies to 2018 versions, eliminating 72 vulnerabilities.
-- The old, unused copy of Modernizr in the demo has been removed.
-
-## 1.3.2
-### Bug fixes
-- Fix jQuery and Bootstrap versions in package.json, fix license info in package.json
+## 2.0.0
 
 ### Enhancements & Features
-- Use left and right single guillemets in pagination.
-- Migrated test suite to Qunit 2.8.0.
+- Added localStorage to store states of:
+⋅ search filters
+⋅ pagination
+⋅ column visibility
+⋅ row count
+- Now you can:
+⋅ Add advanced filters
+⋅ Add action links inside bootgrid header row
+⋅ Add action links inside a table td that will be wrapped in a dropdown
+⋅ Format a table td without use common formatter
+⋅ Pass header Authorization to ajax request
+⋅ Load ajax response with a different rows wrapper
+⋅ Call encapsulated json elements in data-column-id
+- Fixed table td links with data-remote and data-confirmation
+- Changed default icon library to *FontAwesome*
+
+### Breaking Changes
+There are no breaking changes but some HTML templates changed during development. In case you want to use the full new feature set be sure you did not override any affected templates.
+See [README](http://github.com/correalucas/jquery-bootgrid) for more details.
 
 ## 1.3.1
 
