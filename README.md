@@ -29,9 +29,27 @@ Examples you find [here](http://www.jquery-bootgrid.com/Examples).
 
 Instructions will follow soon!
 
-## Asking questions
+```html
+<div data-action-links-id="myActionLinks">
+  <a href="link_to_view/{id}">View {sender.email}</a>
+  bootgridExecute[
+    if('{sender.email}' == 'sender4@test.de') {
+      '<a href="link_to_edit/{id}">Edit {sender.email}</a>'
+    }
+  ]end
+</div>
+```
 
-I'm always happy to help answer your questions. The best way to get quick answers is to go to [stackoverflow.com](http://stackoverflow.com) and tag your questions always with **jquery-bootgrid**.
+Add a html formatter by adding the html-formatter option to your column like this:
+```html
+<th data-column-id="sender.email" data-html-formatter="myHtmlFormatter">Sender</th>
+```
+and this column will call a referenced div with the same html formatter. You can also execute javascript wrapped in <code>bootgridExecute[javascript code here]end</code> like this:
+```html
+<div data-html-formatter-id="myHtmlFormatter">
+  <span class="label label-bootgridExecute['{sender.email}' == 'sender4@test.de' ? 'success' : 'warning']end">{sender.email}</span>
+</div>
+```
 
 ## Building
 
