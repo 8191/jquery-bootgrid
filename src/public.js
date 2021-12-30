@@ -39,7 +39,7 @@ var Grid = function(element, options)
     this.footer = null;
     this.xqr = null;
 
-    // todo: implement cache
+// todo: implement cache
 };
 
 /**
@@ -243,64 +243,13 @@ Grid.defaults = {
     converters: {
         numeric: {
             from: function (value) { return +value; }, // converts from string to numeric
-            to: function (value) {
-                 // converts from numeric to string
-                if (value === undefined) {
-                    return "";
-                } else {
-                    return value + "";
-                }
-            }
+            to: function (value) { return value + ""; } // converts from numeric to string
         },
         string: {
             // default converter
             from: function (value) { return value; },
             to: function (value) { return value; }
-        },
-        datetime: {
-           // convert datetime type fields from unix timestamp to readable format
-           from: function (value) {
-              return value ? moment(parseInt(value)*1000) : "";
-           },
-           to: function (value) {
-              return value ? value.format("lll") : "";
-           }
-        },
-        memsize: {
-            from: function (value) {
-                var modifiers = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
-
-                var ret = parseInt(value);
-                var modifier = value.slice(-1).toUpperCase();
-                for (var exponent = modifiers.length - 1; exponent >= 0; exponent--) {
-                    if (modifier === modifiers[exponent]) {
-                        ret *= Math.pow(1024, exponent);
-                        break;
-                    }
-                }
-                return ret;
-            },
-            to: function (value) {
-                var modifiers = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
-
-                for (var exponent = modifiers.length - 1; exponent >= 0; exponent--) {
-                    if (value >= (5 * Math.pow(1024, exponent))) {
-                        return parseInt(value / Math.pow(1024, exponent)) + modifiers[exponent];
-                    }
-                }
-                return parseInt(value) + '';
-            }
-        },
-        notprefixable: {
-            to: function (value) {
-                if (value.not) {
-                    return '<i class="fa fa-exclamation"></i> ' + value.val;
-                } else {
-                    return value.val;
-                }
-            }
         }
-
     },
 
     /**
@@ -312,23 +261,32 @@ Grid.defaults = {
      **/
     css: {
         actions: "actions btn-group", // must be a unique class name or constellation of class names within the header and footer
+        bootgridButtons: "bootgridButtons",
+        bootgridSearch: "bootgridSearch",
+        buttonActions: "buttonActions",
+        customFilters: "customHeader",
+        clearFilters: "clearFilters",
         center: "text-center",
         columnHeaderAnchor: "column-header-anchor", // must be a unique class name or constellation of class names within the column header cell
         columnHeaderText: "text",
         dropDownItem: "dropdown-item", // must be a unique class name or constellation of class names within the actionDropDown,
         dropDownItemButton: "dropdown-item-button", // must be a unique class name or constellation of class names within the actionDropDown
         dropDownItemCheckbox: "dropdown-item-checkbox", // must be a unique class name or constellation of class names within the actionDropDown
+        dropDownActionLinksItems: "dropdown-menu dropdown-action-links-items",
         dropDownMenu: "dropdown btn-group", // must be a unique class name or constellation of class names within the actionDropDown
-        dropDownMenuItems: "dropdown-menu pull-right", // must be a unique class name or constellation of class names within the actionDropDown
+        dropDownMenuItems: "dropdown-menu dropdown-menu-right", // must be a unique class name or constellation of class names within the actionDropDown
         dropDownMenuText: "dropdown-text", // must be a unique class name or constellation of class names within the actionDropDown
+        dropDownMenuActionLinks: "dropdown",
         footer: "bootgrid-footer container-fluid",
         header: "bootgrid-header container-fluid",
-        icon: "icon glyphicon",
-        iconColumns: "glyphicon-th-list",
-        iconDown: "glyphicon-chevron-down",
-        iconRefresh: "glyphicon-refresh",
-        iconSearch: "glyphicon-search",
-        iconUp: "glyphicon-chevron-up",
+        icon: "icon fa",
+        iconColumns: "fa-bars",
+        iconDown: "fa-caret-down",
+        iconRefresh: "fa-refresh",
+        iconFilter: "fa-filter",
+        iconClearFilter: "fa-times",
+        iconSearch: "fa-search",
+        iconUp: "fa-caret-up",
         infos: "infos", // must be a unique class name or constellation of class names within the header and footer,
         left: "text-left",
         pagination: "pagination", // must be a unique class name or constellation of class names within the header and footer
@@ -386,10 +344,12 @@ Grid.defaults = {
     labels: {
         all: "All",
         infos: "Showing {{ctx.start}} to {{ctx.end}} of {{ctx.total}} entries",
-        loading: "Loading...",
+        loading: "<i class='fa fa-spinner fa-spin'></i> Loading...",
         noResults: "No results found!",
         refresh: "Refresh",
-        search: "Search"
+        search: "Search",
+        filter: "Avanced Filters",
+        clearFilter: "Clear Filters"
     },
 
     /**
@@ -446,25 +406,27 @@ Grid.defaults = {
      * @for defaults
      **/
     templates: {
-        actionButton: "<button class=\"btn btn-default\" type=\"button\" title=\"{{ctx.text}}\">{{ctx.content}}</button>",
+        actionButton: "<button class=\"btn btn-default \" id=\"{{ctx.id}}\" type=\"button\" data-toggle=\"tooltip\" title=\"{{ctx.text}}\">{{ctx.content}}</button>",
         actionDropDown: "<div class=\"{{css.dropDownMenu}}\"><button class=\"btn btn-default dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\"><span class=\"{{css.dropDownMenuText}}\">{{ctx.content}}</span> <span class=\"caret\"></span></button><ul class=\"{{css.dropDownMenuItems}}\" role=\"menu\"></ul></div>",
         actionDropDownItem: "<li><a data-action=\"{{ctx.action}}\" class=\"{{css.dropDownItem}} {{css.dropDownItemButton}}\">{{ctx.text}}</a></li>",
         actionDropDownCheckboxItem: "<li><label class=\"{{css.dropDownItem}}\"><input name=\"{{ctx.name}}\" type=\"checkbox\" value=\"1\" class=\"{{css.dropDownItemCheckbox}}\" {{ctx.checked}} /> {{ctx.label}}</label></li>",
+        actionLinksDropDown: "<div id=\"{{ctx.dropDownId}}\" class=\"{{css.dropDownMenuActionLinks}}\"><button type=\"button\" class=\"btn btn-default btn-sm\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"{{css.dropDownMenuText}}\">{{ctx.content}}</span> <span class=\"caret\"></span></button><ul class=\"{{css.dropDownActionLinksItems}}\" role=\"menu\"></ul></div>",
+        actionLinksDropDownItem: "<li>{{ctx.content}}</li>",
         actions: "<div class=\"{{css.actions}}\"></div>",
         body: "<tbody></tbody>",
         cell: "<td class=\"{{ctx.css}}\" style=\"{{ctx.style}}\">{{ctx.content}}</td>",
         footer: "<div id=\"{{ctx.id}}\" class=\"{{css.footer}}\"><div class=\"row\"><div class=\"col-sm-6\"><p class=\"{{css.pagination}}\"></p></div><div class=\"col-sm-6 infoBar\"><p class=\"{{css.infos}}\"></p></div></div></div>",
-        header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row\"><div class=\"col-sm-12 actionBar\"><p class=\"{{css.search}}\"></p><p class=\"{{css.actions}}\"></p></div></div></div>",
+        header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row actionBar\"><div class=\"{{css.bootgridButtons}}\"></div><div class=\"{{css.bootgridSearch}}\"></div><div class=\"{{css.buttonActions}}\"></div></div></div><div class=\"{{css.customFilters}} customFilters\"></div>",
         headerCell: "<th data-column-id=\"{{ctx.column.id}}\" class=\"{{ctx.css}}\" style=\"{{ctx.style}}\"><a href=\"javascript:void(0);\" class=\"{{css.columnHeaderAnchor}} {{ctx.sortable}}\"><span class=\"{{css.columnHeaderText}}\">{{ctx.column.text}}</span>{{ctx.icon}}</a></th>",
         icon: "<span class=\"{{css.icon}} {{ctx.iconCss}}\"></span>",
         infos: "<div class=\"{{css.infos}}\">{{lbl.infos}}</div>",
-        loading: "<tr><td colspan=\"{{ctx.columns}}\" class=\"loading\">{{lbl.loading}}</td></tr>",
+        loading: "<tr><td colspan=\"{{ctx.columns}}\" class=\"text-center\">{{lbl.loading}}</td></tr>",
         noResults: "<tr><td colspan=\"{{ctx.columns}}\" class=\"no-results\">{{lbl.noResults}}</td></tr>",
         pagination: "<ul class=\"{{css.pagination}}\"></ul>",
         paginationItem: "<li class=\"{{ctx.css}}\"><a data-page=\"{{ctx.page}}\" class=\"{{css.paginationButton}}\">{{ctx.text}}</a></li>",
         rawHeaderCell: "<th class=\"{{ctx.css}}\">{{ctx.content}}</th>", // Used for the multi select box
         row: "<tr{{ctx.attr}}>{{ctx.cells}}</tr>",
-        search: "<div class=\"{{css.search}}\"><div class=\"input-group\"><span class=\"{{css.icon}} input-group-addon {{css.iconSearch}}\"></span> <input type=\"text\" class=\"{{css.searchField}}\" placeholder=\"{{lbl.search}}\" /></div></div>",
+        search: "<div class=\"{{css.search}}\"><div class=\"input-group\"><span class=\"{{css.icon}} input-group-addon {{css.iconSearch}}\"></span> <input type=\"text\" name=\"searchPhrase\" class=\"{{css.searchField}}\" placeholder=\"{{lbl.search}}\" /></div></div>",
         select: "<input name=\"select\" type=\"{{ctx.type}}\" class=\"{{css.selectBox}}\" value=\"{{ctx.value}}\" {{ctx.checked}} />"
     }
 };
@@ -476,25 +438,14 @@ Grid.defaults = {
  * @param rows {Array} An array of rows to append
  * @chainable
  **/
-Grid.prototype.append = function(rows)
-{
-    if (this.options.ajax)
-    {
+Grid.prototype.append = function(rows){
+    if (this.options.ajax){
         // todo: implement ajax PUT
-    }
-    else
-    {
+    } else {
         var appendedRows = [];
-        for (var i = 0; i < rows.length; i++)
-        {
-            var row = rows[i];
-            for (var j = 0; j < this.columns.length; j++) {
-                var column = this.columns[j];
-                row[column.id] = column.converter.from(row[column.id]);
-            }
-            if (appendRow.call(this, row))
-            {
-                appendedRows.push(row);
+        for (var i = 0; i < rows.length; i++){
+            if (appendRow.call(this, rows[i])){
+                appendedRows.push(rows[i]);
             }
         }
         sortRows.call(this);
@@ -512,14 +463,10 @@ Grid.prototype.append = function(rows)
  * @method clear
  * @chainable
  **/
-Grid.prototype.clear = function()
-{
-    if (this.options.ajax)
-    {
+Grid.prototype.clear = function(){
+    if (this.options.ajax){
         // todo: implement ajax POST
-    }
-    else
-    {
+    } else {
         var removedRows = $.extend([], this.rows);
         this.rows = [];
         this.current = 1;
@@ -537,16 +484,13 @@ Grid.prototype.clear = function()
  * @method destroy
  * @chainable
  **/
-Grid.prototype.destroy = function()
-{
+Grid.prototype.destroy = function(){
     // todo: this method has to be optimized (the complete initial state must be restored)
     $(window).off(namespace);
-    if (this.options.navigation & 1)
-    {
+    if (this.options.navigation & 1){
         this.header.remove();
     }
-    if (this.options.navigation & 2)
-    {
+    if (this.options.navigation & 2){
         this.footer.remove();
     }
     this.element.before(this.origin).remove();
@@ -560,8 +504,7 @@ Grid.prototype.destroy = function()
  * @method reload
  * @chainable
  **/
-Grid.prototype.reload = function()
-{
+Grid.prototype.reload = function(){
     this.current = 1; // reset
     loadData.call(this);
 
@@ -575,30 +518,22 @@ Grid.prototype.reload = function()
  * @param [rowsIds] {Array} An array of rows ids to remove
  * @chainable
  **/
-Grid.prototype.remove = function(rowIds)
-{
-    if (this.identifier != null)
-    {
+Grid.prototype.remove = function(rowIds){
+    if (this.identifier != null){
         var that = this;
 
-        if (this.options.ajax)
-        {
+        if (this.options.ajax){
             // todo: implement ajax DELETE
-        }
-        else
-        {
+        } else {
             rowIds = rowIds || this.selectedRows;
             var id,
-                removedRows = [];
+            removedRows = [];
 
-            for (var i = 0; i < rowIds.length; i++)
-            {
+            for (var i = 0; i < rowIds.length; i++){
                 id = rowIds[i];
 
-                for (var j = 0; j < this.rows.length; j++)
-                {
-                    if (this.rows[j][this.identifier] === id)
-                    {
+                for (var j = 0; j < this.rows.length; j++){
+                    if (this.rows[j][this.identifier] === id){
                         removedRows.push(this.rows[j]);
                         this.rows.splice(j, 1);
                         break;
@@ -623,19 +558,16 @@ Grid.prototype.remove = function(rowIds)
  * @param [phrase] {String} The phrase to search for
  * @chainable
  **/
-Grid.prototype.search = function(phrase)
-{
+Grid.prototype.search = function(phrase){
     phrase = phrase || "";
 
-    if (this.searchPhrase !== phrase)
-    {
+    if (this.searchPhrase !== phrase){
         var selector = getCssSelector(this.options.css.searchField),
-            searchFields = findFooterAndHeaderItems.call(this, selector);
+        searchFields = findFooterAndHeaderItems.call(this, selector);
         searchFields.val(phrase);
     }
 
     executeSearch.call(this, phrase);
-
 
     return this;
 };
@@ -648,24 +580,18 @@ Grid.prototype.search = function(phrase)
  * @param [rowsIds] {Array} An array of rows ids to select
  * @chainable
  **/
-Grid.prototype.select = function(rowIds)
-{
-    if (this.selection)
-    {
+Grid.prototype.select = function(rowIds){
+    if (this.selection){
         rowIds = rowIds || this.currentRows.propValues(this.identifier);
 
         var id, i,
-            selectedRows = [];
+        selectedRows = [];
 
-        while (rowIds.length > 0 && !(!this.options.multiSelect && selectedRows.length === 1))
-        {
+        while (rowIds.length > 0 && !(!this.options.multiSelect && selectedRows.length === 1)){
             id = rowIds.pop();
-            if ($.inArray(id, this.selectedRows) === -1)
-            {
-                for (i = 0; i < this.currentRows.length; i++)
-                {
-                    if (this.currentRows[i][this.identifier] === id)
-                    {
+            if ($.inArray(id, this.selectedRows) === -1){
+                for (i = 0; i < this.currentRows.length; i++){
+                    if (this.currentRows[i][this.identifier] === id){
                         selectedRows.push(this.currentRows[i]);
                         this.selectedRows.push(id);
                         break;
@@ -674,29 +600,25 @@ Grid.prototype.select = function(rowIds)
             }
         }
 
-        if (selectedRows.length > 0)
-        {
+        if (selectedRows.length > 0){
             var selectBoxSelector = getCssSelector(this.options.css.selectBox),
-                selectMultiSelectBox = this.selectedRows.length >= this.currentRows.length;
+            selectMultiSelectBox = this.selectedRows.length >= this.currentRows.length;
 
             i = 0;
-            while (!this.options.keepSelection && selectMultiSelectBox && i < this.currentRows.length)
-            {
+            while (!this.options.keepSelection && selectMultiSelectBox && i < this.currentRows.length){
                 selectMultiSelectBox = ($.inArray(this.currentRows[i++][this.identifier], this.selectedRows) !== -1);
             }
             this.element.find("thead " + selectBoxSelector).prop("checked", selectMultiSelectBox);
 
-            if (!this.options.multiSelect)
-            {
+            if (!this.options.multiSelect){
                 this.element.find("tbody > tr " + selectBoxSelector + ":checked")
-                    .trigger("click" + namespace);
+                .trigger("click" + namespace);
             }
 
-            for (i = 0; i < this.selectedRows.length; i++)
-            {
+            for (i = 0; i < this.selectedRows.length; i++){
                 this.element.find("tbody > tr[data-row-id=\"" + this.selectedRows[i] + "\"]")
-                    .addClass(this.options.css.selected)._bgAria("selected", "true")
-                    .find(selectBoxSelector).prop("checked", true);
+                .addClass(this.options.css.selected)._bgAria("selected", "true")
+                .find(selectBoxSelector).prop("checked", true);
             }
 
             this.element.trigger("selected" + namespace, [selectedRows]);
@@ -714,25 +636,19 @@ Grid.prototype.select = function(rowIds)
  * @param [rowsIds] {Array} An array of rows ids to deselect
  * @chainable
  **/
-Grid.prototype.deselect = function(rowIds)
-{
-    if (this.selection)
-    {
+Grid.prototype.deselect = function(rowIds){
+    if (this.selection){
         rowIds = rowIds || this.currentRows.propValues(this.identifier);
 
         var id, i, pos,
-            deselectedRows = [];
+        deselectedRows = [];
 
-        while (rowIds.length > 0)
-        {
+        while (rowIds.length > 0){
             id = rowIds.pop();
             pos = $.inArray(id, this.selectedRows);
-            if (pos !== -1)
-            {
-                for (i = 0; i < this.currentRows.length; i++)
-                {
-                    if (this.currentRows[i][this.identifier] === id)
-                    {
+            if (pos !== -1){
+                for (i = 0; i < this.currentRows.length; i++){
+                    if (this.currentRows[i][this.identifier] === id){
                         deselectedRows.push(this.currentRows[i]);
                         this.selectedRows.splice(pos, 1);
                         break;
@@ -741,16 +657,14 @@ Grid.prototype.deselect = function(rowIds)
             }
         }
 
-        if (deselectedRows.length > 0)
-        {
+        if (deselectedRows.length > 0){
             var selectBoxSelector = getCssSelector(this.options.css.selectBox);
 
             this.element.find("thead " + selectBoxSelector).prop("checked", false);
-            for (i = 0; i < deselectedRows.length; i++)
-            {
+            for (i = 0; i < deselectedRows.length; i++){
                 this.element.find("tbody > tr[data-row-id=\"" + deselectedRows[i][this.identifier] + "\"]")
-                    .removeClass(this.options.css.selected)._bgAria("selected", "false")
-                    .find(selectBoxSelector).prop("checked", false);
+                .removeClass(this.options.css.selected)._bgAria("selected", "false")
+                .find(selectBoxSelector).prop("checked", false);
             }
 
             this.element.trigger("deselected" + namespace, [deselectedRows]);
@@ -768,12 +682,10 @@ Grid.prototype.deselect = function(rowIds)
  * @param [dictionary] {Object} A sort descriptor dictionary that contains the sort information
  * @chainable
  **/
-Grid.prototype.sort = function(dictionary)
-{
+Grid.prototype.sort = function(dictionary){
     var values = (dictionary) ? $.extend({}, dictionary) : {};
 
-    if (values === this.sortDictionary)
-    {
+    if (values === this.sortDictionary){
         return this;
     }
 
@@ -794,8 +706,7 @@ Grid.prototype.sort = function(dictionary)
  * @return {Array} Returns a list of the column settings.
  * @since 1.2.0
  **/
-Grid.prototype.getColumnSettings = function()
-{
+Grid.prototype.getColumnSettings = function(){
     return $.merge([], this.columns);
 };
 
@@ -808,8 +719,7 @@ Grid.prototype.getColumnSettings = function()
  * @return {Number} Returns the current page index.
  * @since 1.2.0
  **/
-Grid.prototype.getCurrentPage = function()
-{
+Grid.prototype.getCurrentPage = function(){
     return this.current;
 };
 
@@ -822,8 +732,7 @@ Grid.prototype.getCurrentPage = function()
  * @return {Array} Returns the current rows.
  * @since 1.2.0
  **/
-Grid.prototype.getCurrentRows = function()
-{
+Grid.prototype.getCurrentRows = function(){
     return $.merge([], this.currentRows);
 };
 
@@ -836,9 +745,36 @@ Grid.prototype.getCurrentRows = function()
  * @return {Number} Returns the row count per page.
  * @since 1.2.0
  **/
-Grid.prototype.getRowCount = function()
-{
+Grid.prototype.getRowCount = function(){
     return this.rowCount;
+};
+
+/**
+ * Gets rows.
+ * This method returns only for the first grid instance a value.
+ * Therefore be sure that only one grid instance is catched by your selector.
+ *
+ * @method getRows
+ * @return {Array} Returns rows.
+ * @since 1.2.0
+ **/
+Grid.prototype.getRows = function(){
+    return $.merge([], this.rows);
+};
+
+/**
+ * Grabs a row of data, given the rows identifier
+ *
+ * @method getRowData
+ * @param [rowId] {String} The rows identifier
+ *
+ **/
+Grid.prototype.getRowData = function (rowId) {
+    for(var i = this.rows.length - 1; i >= 0; i--){
+        if (this.rows[i][this.identifier] == rowId){
+            return this.rows[i];
+        }
+    }
 };
 
 /**
@@ -850,8 +786,7 @@ Grid.prototype.getRowCount = function()
  * @return {String} Returns the actual search phrase.
  * @since 1.2.0
  **/
-Grid.prototype.getSearchPhrase = function()
-{
+Grid.prototype.getSearchPhrase = function(){
     return this.searchPhrase;
 };
 
@@ -864,9 +799,25 @@ Grid.prototype.getSearchPhrase = function()
  * @return {Array} Returns all selected rows.
  * @since 1.2.0
  **/
-Grid.prototype.getSelectedRows = function()
-{
+Grid.prototype.getSelectedRows = function(){
     return $.merge([], this.selectedRows);
+};
+
+/**
+ * Gets the complete list of currently selected rows with data.
+ *
+ * @method getSelectedRowsData
+ * @return {Array} Returns all selected rows.
+ * @since 1.2.0
+ **/
+Grid.prototype.getSelectedRowsData = function()
+{
+    var that = this;
+    var aux = [];
+    this.selectedRows.forEach(function(i){
+            $.merge(aux, [that.getRowData(i)]);
+    })
+    return aux;
 };
 
 /**
@@ -878,8 +829,7 @@ Grid.prototype.getSelectedRows = function()
  * @return {Object} Returns the sort dictionary.
  * @since 1.2.0
  **/
-Grid.prototype.getSortDictionary = function()
-{
+Grid.prototype.getSortDictionary = function(){
     return $.extend({}, this.sortDictionary);
 };
 
@@ -892,8 +842,7 @@ Grid.prototype.getSortDictionary = function()
  * @return {Number} Returns the total page count.
  * @since 1.2.0
  **/
-Grid.prototype.getTotalPageCount = function()
-{
+Grid.prototype.getTotalPageCount = function(){
     return this.totalPages;
 };
 
@@ -906,7 +855,29 @@ Grid.prototype.getTotalPageCount = function()
  * @return {Number} Returns the total row count.
  * @since 1.2.0
  **/
-Grid.prototype.getTotalRowCount = function()
-{
+Grid.prototype.getTotalRowCount = function(){
     return this.total;
+};
+
+/**
+ * Appends change.
+ *
+ * @method change
+ * @param rows {Array} An array of rows to change
+ * @chainable
+ **/
+Grid.prototype.change = function(data){
+    if (this.identifier != null){
+        var updated = false;
+        for(var i = this.rows.length - 1; i >= 0; i--){
+            if (this.rows[i][this.identifier] == data[this.identifier]){
+                this.rows[i] = data;
+                updated = true;
+                this.reload();
+            }
+        }
+        if ( ! updated) {
+            this.append([data]);
+        }
+    }
 };
